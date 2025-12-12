@@ -25,22 +25,29 @@ config({ path: "./config/config.env" });
 connectDB();
 connectCloudinary();
 
-// app.use(cors());
-console.log(process.env.FRONTEND_URI, "frontend url");
-console.log(process.env.FRONTEND_URI_SECOND, "frontend url second");
-app.use(
-  cors({
-    origin: [
-      process.env.FRONTEND_URI,
-      process.env.FRONTEND_URI_SECOND,
-      process.env.FRONTEND_URI_THIRD,
-      process.env.FRONTEND_URI_FOURTH,
-      "https://psycortex-client.netlify.app",
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    credentials: true,
-  })
-);
+const allowedOrigins = [
+  process.env.FRONTEND_URI,
+  process.env.FRONTEND_URI_SECOND,
+  process.env.FRONTEND_URI_THIRD,
+  process.env.FRONTEND_URI_FOURTH
+].filter(Boolean); // remove undefined
+
+const corsOptions = {
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, Postman)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS policy: This origin is not allowed"));
+    }
+  },
+  credentials: true, // if you use cookies / auth
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); 
 
 // app.use(cors({
 //   origin: ['http://127.0.0.1:5173', 'http://127.0.0.1:5174', 'http://127.0.0.1:5175'] // Correct format
